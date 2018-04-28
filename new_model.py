@@ -10,6 +10,8 @@ from six.moves import range
 from keras.optimizers import Adam
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 
+import matplotlib.pyplot as plt
+
 from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw 
@@ -28,14 +30,12 @@ INPUT_SIZE = IMG_WIDTH * IMG_HEIGHT
 
 filepath = 'model.h5'
 # Define batch size
-batch_size=100
+batch_size=256
 
 samples_per_epoch = 4782/batch_size*2 #math.floor(NUM_CLASSES/batch_size)*4782
 validation_steps = 1190/batch_size*2 #math.floor(NUM_CLASSES/batch_size)*10
 
 train_datagen = ImageDataGenerator(
-    featurewise_center=True,
-    featurewise_std_normalization=True,
     width_shift_range=0.2,
     height_shift_range=0.1,
     rotation_range=10,
@@ -46,8 +46,6 @@ train_datagen = ImageDataGenerator(
 )
 
 vali_datagen = ImageDataGenerator(
-    featurewise_center=True,
-    featurewise_std_normalization=True,
     fill_mode='constant',
     cval=0,
 )
@@ -67,7 +65,7 @@ model.summary()
 
 model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.0001), metrics=['accuracy'])
 
-model = load_model("model.h5")
+#model = load_model("model.h5")
 
 check_point = ModelCheckpoint(filepath, monitor='val_acc', verbose=0,
                               save_best_only=True, save_weights_only=False, mode='auto', period=1)
@@ -76,7 +74,7 @@ early_stop = EarlyStopping(
 
 dirs = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
-model.fit_generator(
+H=model.fit_generator(
   train_datagen.flow_from_directory('train_val_symbols/train',
                                     classes=dirs,
                                     target_size=(IMG_WIDTH, IMG_HEIGHT),
@@ -95,3 +93,23 @@ model.fit_generator(
   validation_steps=validation_steps,
   callbacks=[check_point, early_stop]
 )
+
+plt.style.use("ggplot")
+plt.figure()
+N = len(H.epoch)
+
+fig, ax1 = plt.subplots()
+ax2 = ax1.twinx()
+
+ax1.plot(np.arange(0, N), H.history["loss"], label="train_loss", color='g')
+ax1.plot(np.arange(0, N), H.history["val_loss"], label="val_loss", color='y')
+ax2.plot(np.arange(0, N), H.history["acc"], label="train_acc")
+ax2.plot(np.arange(0, N), H.history["val_acc"], label="val_acc")
+ax1.legend()
+ax2.legend()
+plt.title("Training Loss and Accuracy")
+ax1.set_xlabel("Epoch #")
+ax1.set_ylabel("Loss")
+ax2.set_ylabel("Accuracy")
+plt.legend(loc="upper left")
+plt.savefig("model.png")
