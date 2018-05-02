@@ -19,7 +19,7 @@ import numpy as np
 
 
 # All the numbers, plus sign and space for padding.
-CHARS = '0123456789' # -/.,ABCDEFGHIJKLMNOPQRSTUVXYZ'
+CHARS = '0123456789ABCDE' # -/.,ABCDEFGHIJKLMNOPQRSTUVXYZ'
 MAX_EPOCHS = 60
 NUM_CLASSES = len(CHARS)
 IMAGES_PR_CLASS = 1
@@ -28,13 +28,13 @@ IMG_WIDTH = 64
 IMG_HEIGHT = 64
 INPUT_SIZE = IMG_WIDTH * IMG_HEIGHT
 
-filepath = 'model-b.h5'
-plotfile = 'model-b.png'
+filepath = 'model-c.h5'
+plotfile = 'model-c.png'
 # Define batch size
 batch_size=256
 
-samples_per_epoch = 4782/batch_size*2 #math.floor(NUM_CLASSES/batch_size)*4782
-validation_steps = 1190/batch_size*2 #math.floor(NUM_CLASSES/batch_size)*10
+samples_per_epoch = (5358)/batch_size*3 #math.floor(NUM_CLASSES/batch_size)*4782
+validation_steps = (1332)/batch_size*3 #math.floor(NUM_CLASSES/batch_size)*10
 
 print('Build model...')
 model = Sequential()
@@ -43,7 +43,9 @@ model.add(Conv2D(32, kernel_size=(3, 3),
                  input_shape=(IMG_WIDTH, IMG_HEIGHT, 1)))
 model.add(Conv2D(64, kernel_size=(3, 3),
                  activation='relu'))
-model.add(Conv2D(32, kernel_size=(3, 3),
+model.add(Conv2D(128, kernel_size=(3, 3),
+                 activation='relu'))
+model.add(Conv2D(64, kernel_size=(3, 3),
                  strides=(2, 2),
                  activation='relu'))
 #model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -61,9 +63,9 @@ model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.0001), metric
 check_point = ModelCheckpoint(filepath, monitor='val_acc', verbose=0,
                               save_best_only=True, save_weights_only=False, mode='auto', period=1)
 early_stop = EarlyStopping(
-    monitor='val_acc', min_delta=0, patience=10, verbose=0, mode='auto')
+    monitor='val_acc', min_delta=0, patience=5, verbose=0, mode='auto')
 
-dirs = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+dirs = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E']
 
 train_datagen = ImageDataGenerator(
     width_shift_range=0.2,
